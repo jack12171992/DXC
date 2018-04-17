@@ -15,9 +15,9 @@ public class ReadInput {
 	final int maxWordLength = 20;
 	final String whiteSpace = " ";
 	
-	ReadInput(Workbook workbook){
+	ReadInput(Workbook workbook, int indexOfSheet){
 		this.workbook = workbook;
-		dataSheet = workbook.getSheetAt(0);
+		dataSheet = workbook.getSheetAt(indexOfSheet);
 		iterator = dataSheet.iterator();
 	}
 	
@@ -104,7 +104,7 @@ public class ReadInput {
 		
 		
 		finalList = word.split(" ");
-		System.out.println("The size of the list is: " + finalList.length);
+//		System.out.println("The size of the list is: " + finalList.length);
 		return finalList;
 	}
 	
@@ -173,9 +173,13 @@ public class ReadInput {
 		}
 	}
 	
-	public Iterator<Entry> getData() {
+	public Iterator<Entry> getList() {
 		prioritize();
 		Iterator<Entry> it = myPQ.iterator();
 		return it;
+	}
+	
+	public ArrayList<String> getReponses() {
+		return excelData;
 	}
 }

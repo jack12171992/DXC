@@ -3,97 +3,86 @@ import java.util.*;
 
 
 public class ReadFile {
-	Map<String, Integer> lookupTable = new HashMap<>(125, 0.7f);
+	
 	Workbook workbook;
+	ArrayList<String> allResponses;
+	Map<String, Response> lookupTable = new HashMap<>(125, 0.7f);
 	Sheet dataSheet;
 	Iterator<Row> iterator;
-	ArrayList<Cell> excelData = new ArrayList<Cell>();
-//	TreeMap<Integer, String> myTreeMap = new TreeMap<>();
-	PriorityQueue<Entry> myPQ = new PriorityQueue<>();
-	int numOfRow;
-	final int maxWordLength = 20;
-	final String whiteSpace = " ";
+	ArrayList<WordNode> excelData = new ArrayList<WordNode>();
 	
-	
-	ReadFile(Workbook workbook){
+	ReadFile(Workbook workbook, ArrayList<String> response, int indexOfSheet){
 		this.workbook = workbook;
-		dataSheet = workbook.getSheetAt(0);
+		allResponses = response;
+		dataSheet = workbook.getSheetAt(indexOfSheet);
 		iterator = dataSheet.iterator();
-		numOfRow = 0;
 	}
 	
-	public ArrayList<Cell> finalListOfWords(){
+//	private void constructNodeList(ArrayList<String> responses) {
+//		Iterator<String> it = responses.iterator();
+//		while(it.hasNext()) {
+//			
+//		}
+//	}
+	
+	private void convertToHashTable() {
+		Iterator<String> it = allResponses.iterator();
+		String currentResponse;
+		while(it.hasNext()) {
+			currentResponse = it.next();
+			lookupTable.put(currentResponse, new Response(currentResponse, false));
+		}
+	}
+	
+	private void getAllInputs() {
 		Cell currentCell = null;
 		Row currentRow = null;
 		Iterator<Cell> cellIterator = null;
-		boolean endOfRow = false;
-
-		
+		String currentString;
+		int i = 0;
 		while(iterator.hasNext()) {
 			currentRow = iterator.next();
 			cellIterator = currentRow.iterator();
 			while(cellIterator.hasNext()) {
 				currentCell = cellIterator.next();
-//				System.out.println(currentCell);
-//				currentString = (String)currentCell.getStringCellValue();
-//				currentString = currentCell.getStringCellValue();
-				findWords(currentCell);
-				excelData.add(currentCell);
-				if(!endOfRow) {
-					numOfRow++;
-				}
+				currentString = currentCell.getStringCellValue();
+//				System.out.println(newNode.getValue());
+				excelData.add(new WordNode(currentString));
+//				System.out.println(currentString);
 			}
-			if(!endOfRow) {
-				endOfRow = true;
+			++i;
+		}
+//		System.out.println("The size of List is: " + excelData.size());
+		System.out.println(i);
+	}
+	
+	private ArrayList<WordNode> iterateThroughTheList() {
+		Iterator<WordNode> it = excelData.iterator();
+		Iterator<String> itList;
+		WordNode currentWord;
+		while(it.hasNext()) {
+			currentWord = it.next();
+			itList = allResponses.iterator();
+			while(itList.hasNext()) {
+				findWordInText(itList.next(), currentWord);
 			}
 		}
 		return excelData;
 	}
 	
-	public int numberOfElements_In_A_Row() {
-		return numOfRow;
-	}
-	
-	private void findWords(Cell currentCell) {
-//		System.out.println(currentCell.getCellType());
-		String currentString = currentCell.getStringCellValue();
-		if(lookupTable.get(currentString) == null) {
-			lookupTable.put(currentString, 1);
-		}else {
-			lookupTable.computeIfPresent(currentString, (k,v) -> v+1);
+	private void findWordInText(String text, WordNode wordNode) {
+		String word = wordNode.getValue();
+		Response response;
+		if(text.contains(word)) {
+			response = lookupTable.get(text);
+			wordNode.addResponse(response);
 		}
 	}
 	
-	private void prioritize() {
-		Iterator<Map.Entry<String, Integer>> it = lookupTable.entrySet().iterator();
-		int currentValue;
-		String currentString;
-		while(it.hasNext()) {
-			Map.Entry<String, Integer> pair = (Map.Entry<String, Integer>)it.next();
-			currentValue = ((Integer)pair.getValue()).intValue();
-			currentString = pair.getKey().toString();
-			myPQ.add(new Entry(currentValue, currentString));
-		}	
-	}
-	
-	private void printText(String currentString, int currentCount) {
-		int whiteSpaces = maxWordLength - currentString.length();
-		System.out.print(currentString);
-		for(int i = 0; i < whiteSpaces; i++) {
-			System.out.print(whiteSpace);
-		}
-		System.out.print(currentCount);
-		System.out.println();
-	}
-	
-	public void printTable() {
-		prioritize();
-		Iterator<Entry> it = myPQ.iterator();
-		Entry currentEntry;
-		System.out.println("Value:              Count:");
-		while(it.hasNext()) {
-			currentEntry = (Entry) it.next(); 
-			printText(currentEntry.value, currentEntry.key);
-		}
+	public Iterator<WordNode> readSheets() {
+		convertToHashTable();
+		getAllInputs();
+		ArrayList<WordNode> finalList = iterateThroughTheList();
+		return finalList.iterator();
 	}
 }
